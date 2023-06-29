@@ -71,29 +71,43 @@ pub mod pallet {
 			// TODO: Look into whether there is a configuration where we don't need this extra
 			// signature check due to the other verifications i.e. add the receipt verification in
 			// the pallet validate unsigned portion
+			
+			log::info!(target: "connection_events", "substrate_segment_receipts: {:?}, journal: {:?}",
+      substrate_segment_receipts, journal);
+
 			ensure_signed(origin)?;
+			log::info!(target: "connection_events", "============ 00 ===============");
 			let segments: Vec<SegmentReceipt> = substrate_segment_receipts
 				.into_iter()
 				.map(|(seal, index)| SegmentReceipt { seal, index })
 				.collect();
 
+			log::info!(target: "connection_events", "============ 1 ===============");
 			let receipt = SessionReceipt { segments, journal };
 
+			log::info!(target: "connection_events", "============ 12 ===============");
 			receipt
 				.verify(Digest::new(TRANSFER_IMAGE_ID))
 				.map_err(|_| Error::<T>::FailedVerification)?;
+
+			log::info!(target: "connection_events", "============ 2 ===============");
 
 			// sender original, sender final, recipient original, recipient final
 			let (_, balances): (Vec<[u8; 16]>, Vec<[u8; 16]>) = from_slice(&receipt.journal).expect(
 				"Journal output should deserialize into the same types (& order) that it was written",
 			);
 
+			log::info!(target: "connection_events", "============ 2 ===============");
+
 			accounts.into_iter().zip(balances.into_iter()).for_each(|(account, balance)| {
 				let balance = u128::from_be_bytes(balance);
+
+				log::info!(target: "connection_events", "account: {:?}, balance: {:?}",	account, balance);
 				// TODO: Check if there is a broader way to set new state
 				T::Currency::make_free_balance_be(&account, balance.into());
 			});
-
+			
+			log::info!(target: "connection_events", "============== VerificationSuccess ================");
 			Self::deposit_event(Event::<T>::VerificationSuccess);
 			Ok(())
 		}

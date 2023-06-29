@@ -36,7 +36,9 @@ type ApiType = OnlineClient<
 
 async fn account_query(api: &ApiType, account: AccountId32)  -> Result<Option<AccountInfo<u32, AccountData<u128>>>, subxt::Error> {
     let query = substrate_node::storage().system().account(&account);
-    let query_result = api.storage().fetch(&query, None).await;    
+    
+    let query_result = api.storage().fetch(&query, None).await;
+    // println!("query_result ==========================> {:?}", query_result);    
 	query_result
 }
 
@@ -44,6 +46,7 @@ pub async fn prove_transactions(file_path: String) {
     let api = OnlineClient::<PolkadotConfig>::new().await.unwrap();
 
     println!("Preparing transactions...");
+    println!("TRANSFER_ID =========>  {:?}", TRANSFER_ID);
     let transfers = process_json_file(file_path);
 
     if transfers.is_empty() {
@@ -115,6 +118,7 @@ pub async fn prove_transactions(file_path: String) {
     );
 
     let api = OnlineClient::<PolkadotConfig>::new().await.unwrap();
+    
     let restored_key = SubxtPair::from_string("0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a", None).unwrap();
     let signer = PairSigner::new(restored_key);
 
@@ -122,6 +126,8 @@ pub async fn prove_transactions(file_path: String) {
 
     // The segment receipts that SCALE can understand
     let substrate_session_receipt = receipt.segments.into_iter().map(| SegmentReceipt { seal, index }| {
+        println!("seal ==============> {:?}", seal);
+        println!("index ==============> {:?}", index);
         (seal, index)
     }).collect();
 

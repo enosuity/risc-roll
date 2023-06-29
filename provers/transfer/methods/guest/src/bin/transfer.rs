@@ -17,22 +17,29 @@
 
 use risc0_zkvm::guest::env;
 use sp_std::vec::Vec;
+use log;
 
 risc0_zkvm::guest::entry!(main);
 
 pub fn main() {
-    let balances_bytes = env::read::<Vec<[u8; 16]>>();
-    let transfers_with_indexed_accounts_bytes = env::read::<Vec<(usize, usize, [u8; 16])>>();
+    log::info!(target: "transfer", "================ 111 ===========");
 
+    let balances_bytes = env::read::<Vec<[u8; 16]>>();
+    log::info!(target: "transfer", "================ 112 ===========");
+    let transfers_with_indexed_accounts_bytes = env::read::<Vec<(usize, usize, [u8; 16])>>();
+    log::info!(target: "transfer", "================ 113 ===========");
     let mut balances: Vec<u128> = balances_bytes.clone().into_iter().map(|balance| {
         u128::from_be_bytes(balance)
     }).collect();
+
+    log::info!(target: "transfer", "================ 114 ===========");
 
     let transfers_with_indexed_accounts: Vec<(usize, usize, u128)> =
         transfers_with_indexed_accounts_bytes.clone().into_iter().map(|(sender_index, recipient_index, balance)| {
             (sender_index, recipient_index, u128::from_be_bytes(balance))
         }).collect();
-
+        
+    log::info!(target: "transfer", "================ 115 ===========");
     transfers_with_indexed_accounts.into_iter().for_each(|(sender_index, recipient_index, transfer_balance)| {
         let sender_balance = balances[sender_index];
         let recipient_balance = balances[recipient_index];
@@ -42,8 +49,11 @@ pub fn main() {
         balances[recipient_index] =  recipient_balance.checked_add(transfer_balance).unwrap();
     });
 
+    log::info!(target: "transfer", "================ 115 ===========");
+
     let new_balances_bytes: Vec<[u8; 16]> = balances.into_iter().map(|b| b.to_be_bytes()).collect();
     
+    log::info!(target: "transfer", "================ 116 ===========");
     env::commit(&(
         // Old balances
         balances_bytes,
